@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CheckoutPro - Documentação das APIs</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            color: white;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .stat-card h3 {
+            font-size: 2rem;
+            margin-bottom: 5px;
+        }
+
+        .categories {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+        }
+
+        .category {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .category:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+        }
+
+        .category h2 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            color: #4a5568;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .route-list {
+            list-style: none;
+        }
+
+        .route-list li {
+            margin-bottom: 10px;
+            padding: 8px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .route-list li:last-child {
+            border-bottom: none;
+        }
+
+        .route-list a {
+            text-decoration: none;
+            color: #4a5568;
+            font-weight: 500;
+            transition: color 0.3s ease;
+            display: block;
+            padding: 5px 10px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .route-list a:hover {
+            color: #667eea;
+            background: #f7fafc;
+            transform: translateX(5px);
+        }
+
+        .search-box {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 15px 20px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .quick-links {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .quick-links h2 {
+            color: white;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .quick-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .quick-link {
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .quick-link:hover {
+            background: rgba(255,255,255,0.2);
+            transform: scale(1.05);
+        }
+
+        .quick-link a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .footer {
+            text-align: center;
+            color: white;
+            margin-top: 40px;
+            padding: 20px;
+            opacity: 0.8;
+        }
+
+        .emoji {
+            font-size: 1.2em;
+            margin-right: 8px;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .categories {
+                grid-template-columns: 1fr;
+            }
+            
+            .container {
+                padding: 15px;
+            }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 CheckoutPro Backend</h1>
+            <p>Documentação Completa das APIs</p>
+        </div>
+
+        <div class="stats">
+            <div class="stat-card">
+                <h3>41</h3>
+                <p>Arquivos de Rotas</p>
+            </div>
+            <div class="stat-card">
+                <h3>200+</h3>
+                <p>Endpoints</p>
+            </div>
+            <div class="stat-card">
+                <h3>15+</h3>
+                <p>Sistemas</p>
+            </div>
+            <div class="stat-card">
+                <h3>100%</h3>
+                <p>Documentado</p>
+            </div>
+        </div>
+
+        <div class="quick-links">
+            <h2>🔍 Acesso Rápido</h2>
+            <div class="quick-grid">
+                <div class="quick-link">
+                    <a href="./DOCUMENTACAO_ROTAS_AUTH.md">🔐 Login & Auth</a>
+                </div>
+                <div class="quick-link">
+                    <a href="./DOCUMENTACAO_ROTAS_CHECKOUT.md">🛒 Checkout</a>
+                </div>
+                <div class="quick-link">
+                    <a href="./DOCUMENTACAO_ROTAS_PIX_PAYMENT.md">🟢 PIX</a>
+                </div>
+                <div class="quick-link">
+                    <a href="./DOCUMENTACAO_ROTAS_WEBHOOKS_MANAGEMENT.md">🔗 Webhooks</a>
+                </div>
+                <div class="quick-link">
+                    <a href="./DOCUMENTACAO_ROTAS_ANALYTICS.md">📊 Analytics</a>
+                </div>
+                <div class="quick-link">
+                    <a href="./DOCUMENTACAO_ROTAS_COURSES.md">🎓 Cursos</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="search-box">
+            <input type="text" class="search-input" placeholder="🔍 Buscar por sistema, endpoint ou funcionalidade..." id="searchInput">
+        </div>
+
+        <div class="categories" id="categoriesContainer">
+            <div class="category" data-category="auth">
+                <h2><span class="emoji">🔐</span>Autenticação e Segurança</h2>
+                <ul class="route-list">
+                    <li><a href="./DOCUMENTACAO_ROTAS_AUTH.md">🔐 Autenticação - Login, registro, 2FA, JWT</a></li>
+                    <li><a href="./DOCUMENTACAO_ROTAS_USERS.md">👤 Usuários - Gerenciamento de perfis</a></li>
+                    <li><a href="./DOCUMENTACAO_ROTAS_KYC.md">🔒 KYC - Verificação de identidade</a></li>
+                </ul>
+            </div>
+
+            <div class="category" data-category="ecommerce">
+                <h2><span class="emoji">🛍️</span>E-commerce e Vendas</h2>
+                <ul class="route-list">
+                    <li><a href="./DOCUMENTACAO_ROTAS_PRODUCTS.md">📦 Produtos - CRUD completo</a></li>
+                    <li><a href="./DOCUMENTACAO_ROTAS_CHECKOUT.md">🛒 Checkout - Finalização de compras</a></li>
+                    <li><a href="./DOCUMENTACAO_ROTAS_ORDERS.md">📋 Pedidos - Gerenciamento completo</a></li>
+                    <li><a href="./DOCUMENTACAO_ROTAS_FUNNEL.md">🎯 Funil de Vendas - Conversões</a></li>
+                    <li><a href="./DOCUMENTACAO_ROTAS_SALES_RECOVERY.md">🔄 Recuperação - Carrinho abandonado</a></li>
+                </ul>
+            </div>
+
+            <div class="category" data-category="payments">
+                <h2><span class="emoji">💳</span>Pagamentos e Financeiro</h2>
+                <ul class="route-list">
+                    <li><a href="./DOCUMENTACAO_ROTAS_CARD_PAYMENT.md">💳 Cartão de Crédito - Processamento</a></li>
+                    <li><a href="./DOCUMENTACAO_ROTAS_PIX.md">🟢 PIX Básico - Sistema simples</a></li>
+                    <li><a href="./DOCUMENTACAO_ROTAS_PIX_PAYMENT.md">🟢 PIX Avançado - Multi-adquirente</a></li>
+                    <li><a href="./DOCUMENTACAO_ROTAS_WALLET.md">💰 Carteira Digital - Saldo do usuário</a></li>
+                    <li><a href="./DOCUMENTACAO_ROTAS_TRANSACTIONS.md">💼 Transações - Histórico financeiro</a></li>
+                    <li><a href="./DOCUMENTACAO_ROTAS_ACQUIRERS.md">🏦 Adquirentes - Gestão de gateways</a></li>
+                </ul>
+            </div>
+
+            <div class="category" data-category="analytics">
+                <h2><span class="emoji">📊</span>Analytics e Tracking</h2>
+                <ul class="route-list">
+                    <li><a href="./DOCUMENTACAO_ROTAS_ANALYTICS.md">📈 Analytics - Relatórios de vendas</a></li>
+                    <li><a href="./DOCUMENTACAO_ROTAS_TRACKING.md">🎯 Tracking - Rastreamento de eventos</a></li>
+                    <li><a href="./DOCUMENTACAO_ROTAS_UTM.md">📊 UTM - Campanhas e tráfego</a></li>
+                    <li><a href="./DOCUMENTACAO_ROTAS_FACEBOOK_TRACKING.md">📘 Facebook - Pixel tracking</a></li>
+                </ul>
+            </div>
+
+            <div class="category" data-category="education">
+                <h2><span class="emoji">🎓</span>Educação e Cursos</h2>
+                <ul class="route-list">
+                    <li><a href="./DOCUMENTACAO_ROTAS_COURSES.md">📚 Cursos - Sistema de cursos online</a></li>
+                    <li><a href="./DOCUMENTACAO_ROTAS_COURSE_ADMIN.md">👨‍🏫 Admin Cursos - Administração</a></li>
+                    <li><a href="./DOCUMENTACAO_ROTAS_STUDENT.md">🎓 Área do Aluno - Player e progresso</a></li>
+                    <li><a href="./DOCUMENTACAO_ROTAS_MEMBERS.md">👥 Membros - Sistema de acesso</a></li>
+                </ul>
+            </div>
+
+            <div class="category" data-category="communication">
+                <h2><span class="emoji">📧</span>Comunicação</h2>
+                <ul class="route-list">
+                    <li><a href="./DOCUMENTACAO_ROTAS_EMAIL.md">✉️ Email - Sistema transacional</a></li>
+                    <li><a href="./DOCUMENTACAO_ROTAS_NOTIFICATIONS.md">🔔 Notificações - Push, SMS, in-app</a></li>
+                    <li><a href="./DOCUMENTACAO_ROTAS_GAMIFICATION.md">🎮 Gamificação - Pontos e badges</a></li>
+                </ul>
+            </div>
+
+            <div class="category" data-category="subscriptions">
+                <h2><span class="emoji">💰</span>Assinaturas e Planos</h2>
+                <ul class="route-list">
+                    <li><a href="./DOCUMENTACAO_ROTAS_PLANS.md">📋 Planos - Criação e gestão</a></li>
+                    <li><a href="./DOCUMENTACAO_ROTAS_USER_PLANS.md">👤 Planos do Usuário - Assinaturas</a></li>
+                    <li><a href="./DOCUMENTACAO_ROTAS_SUBSCRIPTIONS.md">🔄 Assinaturas - Sistema de recorrência</a></li>
+                </ul>
+            </div>
+
+            <div class="category" data-category="frontend">
+                <h2><span class="emoji">🎨</span>Frontend e Templates</h2>
+                <ul class="route-list">
+                    <li><a href="./DOCUMENTACAO_ROTAS_FRONTEND.md">🖼️ Frontend - Rotas do SPA</a></li>
+                    <li><a href="./DOCUMENTACAO_ROTAS_TEMPLATES.md">🎨 Templates - Personalização visual</a></li>
+                    <li><a href="./DOCUMENTACAO_ROTAS_URL_HANDLERS.md">🔗 URLs - Compartilhamento e links</a></li>
+                </ul>
+            </div>
+
+            <div class="category" data-category="media">
+                <h2><span class="emoji">📁</span>Upload e Mídia</h2>
+                <ul class="route-list">
+                    <li><a href="./DOCUMENTACAO_ROTAS_UPLOAD.md">📤 Upload - Vídeos, imagens, arquivos</a></li>
+                    <li><a href="./DOCUMENTACAO_ROTAS_PHYSICAL.md">📦 Produtos Físicos - Entrega</a></li>
+                </ul>
+            </div>
+
+            <div class="category" data-category="partnerships">
+                <h2><span class="emoji">🤝</span>Parcerias</h2>
+                <ul class="route-list">
+                    <li><a href="./DOCUMENTACAO_ROTAS_PARTNERS.md">🤝 Parceiros - Sistema de afiliados</a></li>
+                </ul>
+            </div>
+
+            <div class="category" data-category="webhooks">
+                <h2><span class="emoji">🔗</span>Webhooks e Integrações</h2>
+                <ul class="route-list">
+                    <li><a href="./DOCUMENTACAO_ROTAS_WEBHOOK.md">🔗 Webhook Principal - Pagamentos automáticos</a></li>
+                    <li><a href="./DOCUMENTACAO_ROTAS_WEBHOOKS_CORE.md">⚙️ Webhooks Core - CRUD de webhooks</a></li>
+                    <li><a href="./DOCUMENTACAO_ROTAS_WEBHOOKS_MANAGEMENT.md">🛠️ Webhooks Management - Gerenciamento avançado</a></li>
+                </ul>
+            </div>
+
+            <div class="category" data-category="admin">
+                <h2><span class="emoji">🏢</span>Administração</h2>
+                <ul class="route-list">
+                    <li><a href="./DOCUMENTACAO_ROTAS_ADMIN.md">👑 Admin - Painel administrativo</a></li>
+                    <li><a href="./DOCUMENTACAO_ROTAS_SETTINGS.md">⚙️ Configurações - Settings do sistema</a></li>
+                    <li><a href="./DOCUMENTACAO_ROTAS_BACKUP.md">💾 Backup - Backup e restore</a></li>
+                    <li><a href="./DOCUMENTACAO_ROTAS_LOGS.md">📋 Logs - Auditoria e debugging</a></li>
+                    <li><a href="./DOCUMENTACAO_ROTAS_ADVANCED.md">🔧 Avançado - Funcionalidades especiais</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>🚀 CheckoutPro Backend - Documentação Completa</p>
+            <p>📅 Última atualização: Janeiro 2024 | ✅ 41 sistemas documentados</p>
+        </div>
+    </div>
+
+    <script>
+        const searchInput = document.getElementById('searchInput');
+        const categoriesContainer = document.getElementById('categoriesContainer');
+        const categories = document.querySelectorAll('.category');
+
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            
+            categories.forEach(category => {
+                const categoryText = category.textContent.toLowerCase();
+                const shouldShow = categoryText.includes(searchTerm);
+                
+                if (shouldShow) {
+                    category.classList.remove('hidden');
+                } else {
+                    category.classList.add('hidden');
+                }
+            });
+        });
+
+        // Adicionar animações de entrada
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        });
+
+        categories.forEach(category => {
+            category.style.opacity = '0';
+            category.style.transform = 'translateY(20px)';
+            category.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            observer.observe(category);
+        });
+    </script>
+</body>
+</html>
