@@ -745,3 +745,481 @@ const LogsManager = ({ token }) => {
 5. **Performance**: Limite o número de logs retornados
 
 Este sistema de logs oferece uma solução completa para monitoramento, auditoria e diagnóstico, com funcionalidades avançadas de filtragem, categorização e análise estatística.
+
+# 📊 Sistema de Logs - CheckoutPro Backend
+
+## 🎯 Visão Geral
+
+O sistema de logs do CheckoutPro Backend é uma solução completa para monitoramento, auditoria e debugging que captura automaticamente todas as atividades do sistema e fornece uma interface administrativa para análise.
+
+## 🏗️ Arquitetura
+
+### 📁 Estrutura de Arquivos
+```
+cproback/
+├── middleware/
+│   └── logging.js          # Middleware principal e serviços de log
+├── logs/                   # Diretório de logs (criado automaticamente)
+│   ├── requests-2024-09-02.log
+│   ├── responses-2024-09-02.log
+│   ├── errors-2024-09-02.log
+│   ├── performance-2024-09-02.log
+│   ├── auth-2024-09-02.log
+│   ├── payments-2024-09-02.log
+│   ├── analytics-2024-09-02.log
+│   ├── events-2024-09-02.log
+│   └── general-2024-09-02.log
+└── routes/
+    └── admin.js            # Rotas administrativas para logs
+```
+
+### 🔧 Componentes
+
+1. **Middleware de Logging** (`middleware/logging.js`)
+   - Captura automática de todas as requisições
+   - Interceptação de respostas
+   - Detecção de erros e performance
+   - Sanitização de dados sensíveis
+
+2. **Rotas Administrativas** (`routes/admin.js`)
+   - Interface para visualização de logs
+   - Busca e filtros avançados
+   - Estatísticas e relatórios
+   - Limpeza automática
+
+## 📝 Tipos de Logs
+
+### 1. 🌐 Logs de Requisições (`requests-YYYY-MM-DD.log`)
+Captura todas as requisições HTTP recebidas:
+```json
+{
+  "timestamp": "2024-09-02T15:30:45.123Z",
+  "type": "REQUEST_START",
+  "requestId": "abc123def456",
+  "method": "POST",
+  "url": "/api/auth/login",
+  "originalUrl": "/api/auth/login",
+  "path": "/api/auth/login",
+  "query": {},
+  "headers": {
+    "user-agent": "Mozilla/5.0...",
+    "content-type": "application/json",
+    "authorization": "Bearer ***"
+  },
+  "ip": "192.168.1.100",
+  "body": {
+    "email": "user@example.com",
+    "password": "***"
+  },
+  "startTime": "2024-09-02T15:30:45.123Z"
+}
+```
+
+### 2. 📤 Logs de Respostas (`responses-YYYY-MM-DD.log`)
+Captura todas as respostas enviadas:
+```json
+{
+  "timestamp": "2024-09-02T15:30:45.156Z",
+  "type": "REQUEST_END",
+  "request": { /* dados da requisição */ },
+  "response": {
+    "requestId": "abc123def456",
+    "statusCode": 200,
+    "statusMessage": "OK",
+    "duration": "33ms",
+    "responseSize": 1024,
+    "responseBody": {
+      "success": true,
+      "token": "***"
+    },
+    "endTime": "2024-09-02T15:30:45.156Z"
+  }
+}
+```
+
+### 3. ❌ Logs de Erros (`errors-YYYY-MM-DD.log`)
+Captura erros HTTP (4xx, 5xx) e exceções:
+```json
+{
+  "timestamp": "2024-09-02T15:31:00.789Z",
+  "type": "HTTP_ERROR",
+  "requestId": "def456ghi789",
+  "method": "GET",
+  "url": "/api/products/999999",
+  "statusCode": 404,
+  "duration": "15ms",
+  "error": {
+    "success": false,
+    "error": "Produto não encontrado"
+  },
+  "userAgent": "Mozilla/5.0...",
+  "ip": "192.168.1.100"
+}
+```
+
+### 4. ⚡ Logs de Performance (`performance-YYYY-MM-DD.log`)
+Captura requisições lentas (>2 segundos):
+```json
+{
+  "timestamp": "2024-09-02T15:32:10.456Z",
+  "type": "SLOW_REQUEST",
+  "requestId": "ghi789jkl012",
+  "method": "POST",
+  "url": "/api/orders",
+  "duration": "3247ms",
+  "statusCode": 200
+}
+```
+
+### 5. 🔐 Logs de Autenticação (`auth-YYYY-MM-DD.log`)
+Eventos de login, logout, registro:
+```json
+{
+  "timestamp": "2024-09-02T15:33:20.789Z",
+  "type": "AUTH_EVENT",
+  "action": "LOGIN_SUCCESS",
+  "userId": 123,
+  "email": "user@example.com",
+  "ip": "192.168.1.100",
+  "userAgent": "Mozilla/5.0..."
+}
+```
+
+### 6. 💳 Logs de Pagamentos (`payments-YYYY-MM-DD.log`)
+Eventos de transações e pagamentos:
+```json
+{
+  "timestamp": "2024-09-02T15:34:30.012Z",
+  "type": "PAYMENT_EVENT",
+  "action": "PAYMENT_APPROVED",
+  "orderId": "ORD-2024-001",
+  "amount": 99.90,
+  "method": "PIX",
+  "acquirer": "pagarme"
+}
+```
+
+### 7. 📈 Logs de Analytics (`analytics-YYYY-MM-DD.log`)
+Eventos de rastreamento e analytics:
+```json
+{
+  "timestamp": "2024-09-02T15:35:40.345Z",
+  "type": "ANALYTICS_EVENT",
+  "event": "course_enrollment",
+  "courseId": 456,
+  "studentId": 789,
+  "source": "checkout_page"
+}
+```
+
+### 8. 🎯 Logs de Eventos (`events-YYYY-MM-DD.log`)
+Eventos personalizados do sistema:
+```json
+{
+  "timestamp": "2024-09-02T15:36:50.678Z",
+  "type": "USER_REGISTRATION",
+  "userId": 999,
+  "userType": "seller",
+  "registrationSource": "website"
+}
+```
+
+### 9. 📋 Log Geral (`general-YYYY-MM-DD.log`)
+Todos os logs combinados para análise geral.
+
+## 🚀 Implementação
+
+### 1. Middleware Automático
+O middleware é aplicado automaticamente a todas as rotas:
+
+```javascript
+// server.js
+import { requestLogger } from './middleware/logging.js';
+
+// Aplicar logging a todas as requisições
+app.use(requestLogger);
+```
+
+### 2. Logging Personalizado
+Para eventos específicos, use as funções do serviço:
+
+```javascript
+import { logEvent, logError, logAuth, logPayment, logAnalytics } from '../middleware/logging.js';
+
+// Log de evento personalizado
+logEvent('USER_ACTION', {
+  userId: 123,
+  action: 'profile_update',
+  changes: ['email', 'phone']
+});
+
+// Log de erro
+logError(new Error('Falha na conexão'), {
+  context: 'database_connection',
+  retryAttempt: 3
+});
+
+// Log de autenticação
+logAuth('LOGIN_ATTEMPT', 123, {
+  email: 'user@example.com',
+  success: false,
+  reason: 'invalid_password'
+});
+
+// Log de pagamento
+logPayment('PAYMENT_CREATED', 'ORD-001', {
+  amount: 99.90,
+  method: 'credit_card',
+  status: 'pending'
+});
+
+// Log de analytics
+logAnalytics('page_view', {
+  page: '/checkout/produto-123',
+  userId: 456,
+  sessionId: 'sess_789'
+});
+```
+
+## 📊 API Administrativa
+
+### 🔐 Autenticação
+Todas as rotas de logs requerem autenticação de administrador:
+```
+Authorization: Bearer <admin_token>
+```
+
+### 📋 Listar Arquivos de Logs
+```http
+GET /api/admin/logs
+```
+
+**Resposta:**
+```json
+{
+  "success": true,
+  "message": "Lista de arquivos de logs recuperada com sucesso",
+  "data": {
+    "totalFiles": 15,
+    "files": [
+      {
+        "filename": "requests-2024-09-02.log",
+        "type": "requests",
+        "date": "2024-09-02",
+        "size": 2048576,
+        "created": "2024-09-02T00:00:00.000Z",
+        "modified": "2024-09-02T23:59:59.999Z"
+      }
+    ]
+  }
+}
+```
+
+### 📊 Estatísticas dos Logs
+```http
+GET /api/admin/logs/stats?date=2024-09-02
+```
+
+**Resposta:**
+```json
+{
+  "success": true,
+  "data": {
+    "date": "2024-09-02",
+    "totalFiles": 8,
+    "totalSize": 15728640,
+    "logTypes": {
+      "requests": { "files": 1, "size": 8388608 },
+      "errors": { "files": 1, "size": 1048576 },
+      "performance": { "files": 1, "size": 524288 }
+    },
+    "requestCount": 1542,
+    "errorCount": 23,
+    "avgResponseTime": 0
+  }
+}
+```
+
+### 📖 Ler Arquivo de Log
+```http
+GET /api/admin/logs/requests-2024-09-02.log?type=REQUEST_START&limit=100
+```
+
+**Parâmetros de Query:**
+- `type` - Filtrar por tipo de log
+- `startTime` - Data/hora inicial (ISO)
+- `endTime` - Data/hora final (ISO)
+- `limit` - Número máximo de registros (padrão: 1000)
+
+### 🚨 Erros do Dia Atual
+```http
+GET /api/admin/logs/today/errors
+```
+
+### 📋 Requisições do Dia Atual
+```http
+GET /api/admin/logs/today/requests?limit=100
+```
+
+### ⚡ Dados de Performance
+```http
+GET /api/admin/logs/performance?date=2024-09-02
+```
+
+### 🔍 Busca Personalizada
+```http
+POST /api/admin/logs/search
+Content-Type: application/json
+
+{
+  "date": "2024-09-02",
+  "logType": "requests",
+  "searchTerm": "login",
+  "startTime": "2024-09-02T10:00:00.000Z",
+  "endTime": "2024-09-02T18:00:00.000Z",
+  "limit": 500
+}
+```
+
+### 🧹 Limpeza de Logs Antigos
+```http
+DELETE /api/admin/logs/cleanup
+Content-Type: application/json
+
+{
+  "daysToKeep": 30
+}
+```
+
+## 🔒 Segurança e Privacidade
+
+### 🛡️ Sanitização Automática
+O sistema automaticamente remove ou oculta dados sensíveis:
+
+- **Senhas**: Substituídas por `***`
+- **Tokens**: Substituídos por `***`
+- **Números de cartão**: Substituídos por `***`
+- **CPF/CNPJ**: Substituídos por `***`
+- **Chaves API**: Substituídas por `***`
+
+### 📏 Limitação de Tamanho
+- Respostas grandes (>5KB) são truncadas no log
+- Body das requisições é limitado
+- Headers são filtrados (apenas os essenciais)
+
+### 🔐 Controle de Acesso
+- Apenas administradores podem acessar logs
+- Autenticação obrigatória com token JWT
+- Logs de acesso aos próprios logs
+
+## 🔄 Rotação e Manutenção
+
+### 📅 Rotação Diária
+- Novos arquivos criados automaticamente a cada dia
+- Formato: `tipo-YYYY-MM-DD.log`
+- Sem interrupção do serviço
+
+### 🧹 Limpeza Automática
+- Logs antigos removidos automaticamente
+- Configurável (padrão: 30 dias)
+- Limpeza manual via API administrativa
+
+### 💾 Backup
+Recomendações para backup:
+```bash
+# Backup diário dos logs
+tar -czf logs-backup-$(date +%Y%m%d).tar.gz logs/
+
+# Sincronização com storage externo
+rsync -av logs/ backup-server:/backup/checkoutpro/logs/
+```
+
+## 📈 Monitoramento e Alertas
+
+### 🚨 Alertas Recomendados
+1. **Taxa de Erro Alta**: >5% de requisições com erro
+2. **Performance Degradada**: >10% de requisições lentas
+3. **Volume Anormal**: Picos de tráfego inesperados
+4. **Falhas de Autenticação**: Múltiplas tentativas falhadas
+5. **Espaço em Disco**: Logs ocupando >80% do espaço
+
+### 📊 Métricas Importantes
+- Requisições por segundo (RPS)
+- Tempo médio de resposta
+- Taxa de sucesso/erro
+- Distribuição de status codes
+- Endpoints mais utilizados
+- Usuários mais ativos
+
+## 🧪 Teste do Sistema
+
+Execute o script de teste para verificar todas as funcionalidades:
+
+```bash
+# No diretório cproback
+node test-logs-system.js
+```
+
+O script testa:
+- ✅ Login administrativo
+- ✅ Geração de logs de exemplo
+- ✅ Listagem de arquivos
+- ✅ Leitura de logs
+- ✅ Estatísticas
+- ✅ Busca personalizada
+- ✅ Filtros por tipo e data
+- ✅ Logs de erro
+- ✅ Performance
+
+## 🛠️ Troubleshooting
+
+### ❌ Problemas Comuns
+
+1. **Logs não sendo criados**
+   - Verificar permissões do diretório `logs/`
+   - Verificar espaço em disco disponível
+   - Confirmar que o middleware está carregado
+
+2. **Erro de acesso às rotas administrativas**
+   - Verificar token de autenticação
+   - Confirmar role de administrador
+   - Verificar se o usuário existe
+
+3. **Performance degradada**
+   - Logs consomem poucos recursos
+   - Verificar rotação automática
+   - Limpar logs antigos se necessário
+
+### 🔧 Debug
+Para debug, ative logs detalhados:
+```javascript
+// No início do server.js
+process.env.DEBUG_LOGGING = 'true';
+```
+
+## 📋 Checklist de Implementação
+
+- [x] ✅ Middleware de logging implementado
+- [x] ✅ Rotas administrativas criadas
+- [x] ✅ Sanitização de dados sensíveis
+- [x] ✅ Rotação diária automática
+- [x] ✅ Sistema de busca e filtros
+- [x] ✅ Estatísticas e relatórios
+- [x] ✅ Limpeza automática de logs antigos
+- [x] ✅ Documentação completa
+- [x] ✅ Script de teste
+- [x] ✅ Integração com servidor principal
+
+## 🎯 Próximos Passos
+
+1. **Dashboard Web**: Interface gráfica para visualização
+2. **Alertas Automáticos**: Notificações por email/Slack
+3. **Integração Analytics**: Envio para ferramentas externas
+4. **Machine Learning**: Detecção de anomalias
+5. **Relatórios Automáticos**: Relatórios diários/semanais
+
+---
+
+**🔧 Sistema implementado por:** CheckoutPro Backend Team  
+**📅 Data:** Setembro 2024  
+**🔄 Versão:** 1.0.0
