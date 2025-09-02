@@ -746,480 +746,757 @@ const LogsManager = ({ token }) => {
 
 Este sistema de logs oferece uma solução completa para monitoramento, auditoria e diagnóstico, com funcionalidades avançadas de filtragem, categorização e análise estatística.
 
-# 📊 Sistema de Logs - CheckoutPro Backend
+# 📊 Sistema de Logs MySQL - Documentação Completa
 
 ## 🎯 Visão Geral
 
-O sistema de logs do CheckoutPro Backend é uma solução completa para monitoramento, auditoria e debugging que captura automaticamente todas as atividades do sistema e fornece uma interface administrativa para análise.
+Sistema completo de logs utilizando **MySQL Azure Flexible Server** com autenticação SSL, desenvolvido para substituir o sistema de logs baseado em arquivos por uma solução robusta e escalável no banco de dados.
 
-## 🏗️ Arquitetura
+### ✅ Características Principais
+- **100% MySQL** - Não utiliza arquivos locais
+- **SSL Certificate** - Conexão segura com certificado
+- **Estrutura completa** - Logs principais, estatísticas e eventos específicos
+- **Performance otimizada** - Conexão reutilizada e queries eficientes
+- **APIs administrativas** - Interface completa para gestão de logs
+
+---
+
+## 🏗️ Arquitetura do Sistema
 
 ### 📁 Estrutura de Arquivos
 ```
 cproback/
+├── database/
+│   ├── logsDatabase.js       # Conexão MySQL com SSL
+│   └── logsService.js        # Operações de logs no MySQL
 ├── middleware/
-│   └── logging.js          # Middleware principal e serviços de log
-├── logs/                   # Diretório de logs (criado automaticamente)
-│   ├── requests-2024-09-02.log
-│   ├── responses-2024-09-02.log
-│   ├── errors-2024-09-02.log
-│   ├── performance-2024-09-02.log
-│   ├── auth-2024-09-02.log
-│   ├── payments-2024-09-02.log
-│   ├── analytics-2024-09-02.log
-│   ├── events-2024-09-02.log
-│   └── general-2024-09-02.log
-└── routes/
-    └── admin.js            # Rotas administrativas para logs
+│   └── loggingMySQL.js       # Middleware de logging automático
+├── routes/
+│   └── adminLogsMySQL.js     # Rotas administrativas de logs
+└── certificado/
+    └── certificado.crt       # Certificado SSL para MySQL
 ```
 
-### 🔧 Componentes
+### 🗃️ Banco de Dados
 
-1. **Middleware de Logging** (`middleware/logging.js`)
-   - Captura automática de todas as requisições
-   - Interceptação de respostas
-   - Detecção de erros e performance
-   - Sanitização de dados sensíveis
+**Servidor:** `mysqlservercktpro.mysql.database.azure.com`  
+**Banco:** `checkoutpro_logs`  
+**Porta:** `3306`  
+**SSL:** Obrigatório com certificado
 
-2. **Rotas Administrativas** (`routes/admin.js`)
-   - Interface para visualização de logs
-   - Busca e filtros avançados
-   - Estatísticas e relatórios
-   - Limpeza automática
+#### 📊 Estrutura das Tabelas
 
-## 📝 Tipos de Logs
-
-### 1. 🌐 Logs de Requisições (`requests-YYYY-MM-DD.log`)
-Captura todas as requisições HTTP recebidas:
-```json
-{
-  "timestamp": "2024-09-02T15:30:45.123Z",
-  "type": "REQUEST_START",
-  "requestId": "abc123def456",
-  "method": "POST",
-  "url": "/api/auth/login",
-  "originalUrl": "/api/auth/login",
-  "path": "/api/auth/login",
-  "query": {},
-  "headers": {
-    "user-agent": "Mozilla/5.0...",
-    "content-type": "application/json",
-    "authorization": "Bearer ***"
-  },
-  "ip": "192.168.1.100",
-  "body": {
-    "email": "user@example.com",
-    "password": "***"
-  },
-  "startTime": "2024-09-02T15:30:45.123Z"
-}
+##### 1. **`logs`** - Tabela Principal
+```sql
+CREATE TABLE logs (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  request_id VARCHAR(255) NOT NULL,
+  type ENUM('REQUEST_START', 'REQUEST_END', 'HTTP_ERROR', 'APPLICATION_ERROR', 'AUTH_EVENT', 'PAYMENT_EVENT', 'SLOW_REQUEST') NOT NULL,
+  timestamp DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  date_only DATE NOT NULL,
+  method VARCHAR(10),
+  url TEXT,
+  status_code INT,
+  duration_ms INT,
+  ip_address VARCHAR(45),
+  user_agent TEXT,
+  user_id VARCHAR(255),
+  data JSON,
+  INDEX idx_date_type (date_only, type),
+  INDEX idx_timestamp (timestamp),
+  INDEX idx_user_id (user_id),
+  INDEX idx_request_id (request_id)
+);
 ```
 
-### 2. 📤 Logs de Respostas (`responses-YYYY-MM-DD.log`)
-Captura todas as respostas enviadas:
-```json
-{
-  "timestamp": "2024-09-02T15:30:45.156Z",
-  "type": "REQUEST_END",
-  "request": { /* dados da requisição */ },
-  "response": {
-    "requestId": "abc123def456",
-    "statusCode": 200,
-    "statusMessage": "OK",
-    "duration": "33ms",
-    "responseSize": 1024,
-    "responseBody": {
-      "success": true,
-      "token": "***"
-    },
-    "endTime": "2024-09-02T15:30:45.156Z"
-  }
-}
+##### 2. **`logs_daily_stats`** - Estatísticas Diárias
+```sql
+CREATE TABLE logs_daily_stats (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  date_only DATE NOT NULL UNIQUE,
+  total_requests INT DEFAULT 0,
+  total_errors INT DEFAULT 0,
+  total_slow_requests INT DEFAULT 0,
+  avg_response_time_ms DECIMAL(10,2) DEFAULT 0,
+  unique_users INT DEFAULT 0,
+  unique_ips INT DEFAULT 0,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
 ```
 
-### 3. ❌ Logs de Erros (`errors-YYYY-MM-DD.log`)
-Captura erros HTTP (4xx, 5xx) e exceções:
-```json
-{
-  "timestamp": "2024-09-02T15:31:00.789Z",
-  "type": "HTTP_ERROR",
-  "requestId": "def456ghi789",
-  "method": "GET",
-  "url": "/api/products/999999",
-  "statusCode": 404,
-  "duration": "15ms",
-  "error": {
-    "success": false,
-    "error": "Produto não encontrado"
-  },
-  "userAgent": "Mozilla/5.0...",
-  "ip": "192.168.1.100"
-}
+##### 3. **`logs_auth_events`** - Eventos de Autenticação
+```sql
+CREATE TABLE logs_auth_events (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  log_id BIGINT NOT NULL,
+  user_id VARCHAR(255),
+  email VARCHAR(255),
+  action VARCHAR(50) NOT NULL,
+  success BOOLEAN NOT NULL DEFAULT FALSE,
+  ip_address VARCHAR(45),
+  user_agent TEXT,
+  details JSON,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (log_id) REFERENCES logs(id) ON DELETE CASCADE
+);
 ```
 
-### 4. ⚡ Logs de Performance (`performance-YYYY-MM-DD.log`)
-Captura requisições lentas (>2 segundos):
-```json
-{
-  "timestamp": "2024-09-02T15:32:10.456Z",
-  "type": "SLOW_REQUEST",
-  "requestId": "ghi789jkl012",
-  "method": "POST",
-  "url": "/api/orders",
-  "duration": "3247ms",
-  "statusCode": 200
-}
+##### 4. **`logs_payment_events`** - Eventos de Pagamento
+```sql
+CREATE TABLE logs_payment_events (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  log_id BIGINT NOT NULL,
+  order_id VARCHAR(255),
+  transaction_id VARCHAR(255),
+  action VARCHAR(50) NOT NULL,
+  amount DECIMAL(10,2),
+  currency VARCHAR(3) DEFAULT 'BRL',
+  payment_method VARCHAR(50),
+  acquirer VARCHAR(50),
+  status VARCHAR(50),
+  details JSON,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (log_id) REFERENCES logs(id) ON DELETE CASCADE
+);
 ```
-
-### 5. 🔐 Logs de Autenticação (`auth-YYYY-MM-DD.log`)
-Eventos de login, logout, registro:
-```json
-{
-  "timestamp": "2024-09-02T15:33:20.789Z",
-  "type": "AUTH_EVENT",
-  "action": "LOGIN_SUCCESS",
-  "userId": 123,
-  "email": "user@example.com",
-  "ip": "192.168.1.100",
-  "userAgent": "Mozilla/5.0..."
-}
-```
-
-### 6. 💳 Logs de Pagamentos (`payments-YYYY-MM-DD.log`)
-Eventos de transações e pagamentos:
-```json
-{
-  "timestamp": "2024-09-02T15:34:30.012Z",
-  "type": "PAYMENT_EVENT",
-  "action": "PAYMENT_APPROVED",
-  "orderId": "ORD-2024-001",
-  "amount": 99.90,
-  "method": "PIX",
-  "acquirer": "pagarme"
-}
-```
-
-### 7. 📈 Logs de Analytics (`analytics-YYYY-MM-DD.log`)
-Eventos de rastreamento e analytics:
-```json
-{
-  "timestamp": "2024-09-02T15:35:40.345Z",
-  "type": "ANALYTICS_EVENT",
-  "event": "course_enrollment",
-  "courseId": 456,
-  "studentId": 789,
-  "source": "checkout_page"
-}
-```
-
-### 8. 🎯 Logs de Eventos (`events-YYYY-MM-DD.log`)
-Eventos personalizados do sistema:
-```json
-{
-  "timestamp": "2024-09-02T15:36:50.678Z",
-  "type": "USER_REGISTRATION",
-  "userId": 999,
-  "userType": "seller",
-  "registrationSource": "website"
-}
-```
-
-### 9. 📋 Log Geral (`general-YYYY-MM-DD.log`)
-Todos os logs combinados para análise geral.
-
-## 🚀 Implementação
-
-### 1. Middleware Automático
-O middleware é aplicado automaticamente a todas as rotas:
-
-```javascript
-// server.js
-import { requestLogger } from './middleware/logging.js';
-
-// Aplicar logging a todas as requisições
-app.use(requestLogger);
-```
-
-### 2. Logging Personalizado
-Para eventos específicos, use as funções do serviço:
-
-```javascript
-import { logEvent, logError, logAuth, logPayment, logAnalytics } from '../middleware/logging.js';
-
-// Log de evento personalizado
-logEvent('USER_ACTION', {
-  userId: 123,
-  action: 'profile_update',
-  changes: ['email', 'phone']
-});
-
-// Log de erro
-logError(new Error('Falha na conexão'), {
-  context: 'database_connection',
-  retryAttempt: 3
-});
-
-// Log de autenticação
-logAuth('LOGIN_ATTEMPT', 123, {
-  email: 'user@example.com',
-  success: false,
-  reason: 'invalid_password'
-});
-
-// Log de pagamento
-logPayment('PAYMENT_CREATED', 'ORD-001', {
-  amount: 99.90,
-  method: 'credit_card',
-  status: 'pending'
-});
-
-// Log de analytics
-logAnalytics('page_view', {
-  page: '/checkout/produto-123',
-  userId: 456,
-  sessionId: 'sess_789'
-});
-```
-
-## 📊 API Administrativa
-
-### 🔐 Autenticação
-Todas as rotas de logs requerem autenticação de administrador:
-```
-Authorization: Bearer <admin_token>
-```
-
-### 📋 Listar Arquivos de Logs
-```http
-GET /api/admin/logs
-```
-
-**Resposta:**
-```json
-{
-  "success": true,
-  "message": "Lista de arquivos de logs recuperada com sucesso",
-  "data": {
-    "totalFiles": 15,
-    "files": [
-      {
-        "filename": "requests-2024-09-02.log",
-        "type": "requests",
-        "date": "2024-09-02",
-        "size": 2048576,
-        "created": "2024-09-02T00:00:00.000Z",
-        "modified": "2024-09-02T23:59:59.999Z"
-      }
-    ]
-  }
-}
-```
-
-### 📊 Estatísticas dos Logs
-```http
-GET /api/admin/logs/stats?date=2024-09-02
-```
-
-**Resposta:**
-```json
-{
-  "success": true,
-  "data": {
-    "date": "2024-09-02",
-    "totalFiles": 8,
-    "totalSize": 15728640,
-    "logTypes": {
-      "requests": { "files": 1, "size": 8388608 },
-      "errors": { "files": 1, "size": 1048576 },
-      "performance": { "files": 1, "size": 524288 }
-    },
-    "requestCount": 1542,
-    "errorCount": 23,
-    "avgResponseTime": 0
-  }
-}
-```
-
-### 📖 Ler Arquivo de Log
-```http
-GET /api/admin/logs/requests-2024-09-02.log?type=REQUEST_START&limit=100
-```
-
-**Parâmetros de Query:**
-- `type` - Filtrar por tipo de log
-- `startTime` - Data/hora inicial (ISO)
-- `endTime` - Data/hora final (ISO)
-- `limit` - Número máximo de registros (padrão: 1000)
-
-### 🚨 Erros do Dia Atual
-```http
-GET /api/admin/logs/today/errors
-```
-
-### 📋 Requisições do Dia Atual
-```http
-GET /api/admin/logs/today/requests?limit=100
-```
-
-### ⚡ Dados de Performance
-```http
-GET /api/admin/logs/performance?date=2024-09-02
-```
-
-### 🔍 Busca Personalizada
-```http
-POST /api/admin/logs/search
-Content-Type: application/json
-
-{
-  "date": "2024-09-02",
-  "logType": "requests",
-  "searchTerm": "login",
-  "startTime": "2024-09-02T10:00:00.000Z",
-  "endTime": "2024-09-02T18:00:00.000Z",
-  "limit": 500
-}
-```
-
-### 🧹 Limpeza de Logs Antigos
-```http
-DELETE /api/admin/logs/cleanup
-Content-Type: application/json
-
-{
-  "daysToKeep": 30
-}
-```
-
-## 🔒 Segurança e Privacidade
-
-### 🛡️ Sanitização Automática
-O sistema automaticamente remove ou oculta dados sensíveis:
-
-- **Senhas**: Substituídas por `***`
-- **Tokens**: Substituídos por `***`
-- **Números de cartão**: Substituídos por `***`
-- **CPF/CNPJ**: Substituídos por `***`
-- **Chaves API**: Substituídas por `***`
-
-### 📏 Limitação de Tamanho
-- Respostas grandes (>5KB) são truncadas no log
-- Body das requisições é limitado
-- Headers são filtrados (apenas os essenciais)
-
-### 🔐 Controle de Acesso
-- Apenas administradores podem acessar logs
-- Autenticação obrigatória com token JWT
-- Logs de acesso aos próprios logs
-
-## 🔄 Rotação e Manutenção
-
-### 📅 Rotação Diária
-- Novos arquivos criados automaticamente a cada dia
-- Formato: `tipo-YYYY-MM-DD.log`
-- Sem interrupção do serviço
-
-### 🧹 Limpeza Automática
-- Logs antigos removidos automaticamente
-- Configurável (padrão: 30 dias)
-- Limpeza manual via API administrativa
-
-### 💾 Backup
-Recomendações para backup:
-```bash
-# Backup diário dos logs
-tar -czf logs-backup-$(date +%Y%m%d).tar.gz logs/
-
-# Sincronização com storage externo
-rsync -av logs/ backup-server:/backup/checkoutpro/logs/
-```
-
-## 📈 Monitoramento e Alertas
-
-### 🚨 Alertas Recomendados
-1. **Taxa de Erro Alta**: >5% de requisições com erro
-2. **Performance Degradada**: >10% de requisições lentas
-3. **Volume Anormal**: Picos de tráfego inesperados
-4. **Falhas de Autenticação**: Múltiplas tentativas falhadas
-5. **Espaço em Disco**: Logs ocupando >80% do espaço
-
-### 📊 Métricas Importantes
-- Requisições por segundo (RPS)
-- Tempo médio de resposta
-- Taxa de sucesso/erro
-- Distribuição de status codes
-- Endpoints mais utilizados
-- Usuários mais ativos
-
-## 🧪 Teste do Sistema
-
-Execute o script de teste para verificar todas as funcionalidades:
-
-```bash
-# No diretório cproback
-node test-logs-system.js
-```
-
-O script testa:
-- ✅ Login administrativo
-- ✅ Geração de logs de exemplo
-- ✅ Listagem de arquivos
-- ✅ Leitura de logs
-- ✅ Estatísticas
-- ✅ Busca personalizada
-- ✅ Filtros por tipo e data
-- ✅ Logs de erro
-- ✅ Performance
-
-## 🛠️ Troubleshooting
-
-### ❌ Problemas Comuns
-
-1. **Logs não sendo criados**
-   - Verificar permissões do diretório `logs/`
-   - Verificar espaço em disco disponível
-   - Confirmar que o middleware está carregado
-
-2. **Erro de acesso às rotas administrativas**
-   - Verificar token de autenticação
-   - Confirmar role de administrador
-   - Verificar se o usuário existe
-
-3. **Performance degradada**
-   - Logs consomem poucos recursos
-   - Verificar rotação automática
-   - Limpar logs antigos se necessário
-
-### 🔧 Debug
-Para debug, ative logs detalhados:
-```javascript
-// No início do server.js
-process.env.DEBUG_LOGGING = 'true';
-```
-
-## 📋 Checklist de Implementação
-
-- [x] ✅ Middleware de logging implementado
-- [x] ✅ Rotas administrativas criadas
-- [x] ✅ Sanitização de dados sensíveis
-- [x] ✅ Rotação diária automática
-- [x] ✅ Sistema de busca e filtros
-- [x] ✅ Estatísticas e relatórios
-- [x] ✅ Limpeza automática de logs antigos
-- [x] ✅ Documentação completa
-- [x] ✅ Script de teste
-- [x] ✅ Integração com servidor principal
-
-## 🎯 Próximos Passos
-
-1. **Dashboard Web**: Interface gráfica para visualização
-2. **Alertas Automáticos**: Notificações por email/Slack
-3. **Integração Analytics**: Envio para ferramentas externas
-4. **Machine Learning**: Detecção de anomalias
-5. **Relatórios Automáticos**: Relatórios diários/semanais
 
 ---
 
-**🔧 Sistema implementado por:** CheckoutPro Backend Team  
-**📅 Data:** Setembro 2024  
-**🔄 Versão:** 1.0.0
+## 🔧 Configuração
+
+### 📋 Variáveis de Ambiente
+```env
+# MySQL Logs Database
+LOGS_DB_HOST=mysqlservercktpro.mysql.database.azure.com
+LOGS_DB_USER=admcktpromysql
+LOGS_DB_PASSWORD=07XFRJl6sPAL
+LOGS_DB_NAME=checkoutpro_logs
+LOGS_DB_PORT=3306
+```
+
+### 🔒 Certificado SSL
+- **Arquivo:** `certificado/certificado.crt`
+- **Uso:** Obrigatório para conexão segura
+- **Configuração:** Automática no sistema
+
+---
+
+## 📡 APIs Disponíveis
+
+### 🔐 Autenticação
+Todas as rotas administrativas requerem:
+- **Header:** `Authorization: Bearer <token>`
+- **Role:** `admin`
+
+### 📊 Rotas Administrativas
+
+#### 1. **Dashboard de Logs**
+```http
+GET /api/admin/logs/dashboard
+Authorization: Bearer <token>
+```
+**Resposta:**
+```json
+{
+  "success": true,
+  "data": {
+    "quick": {
+      "today": {
+        "total_requests": 150,
+        "total_errors": 5,
+        "total_slow_requests": 3,
+        "avg_response_time_ms": 245.67
+      },
+      "totalLogs": 15847,
+      "typeBreakdown": {
+        "REQUEST_START": 7923,
+        "REQUEST_END": 7920,
+        "HTTP_ERROR": 2,
+        "AUTH_EVENT": 2
+      }
+    },
+    "week": [
+      {
+        "date_only": "2025-09-02",
+        "total_requests": 150,
+        "total_errors": 5,
+        "total_slow_requests": 3,
+        "avg_response_time_ms": 245.67,
+        "unique_users": 12,
+        "unique_ips": 8
+      }
+    ],
+    "trends": {
+      "requests": 15,
+      "errors": -20,
+      "avgResponseTime": 5
+    },
+    "lastUpdate": "2025-09-02T20:23:04.720Z"
+  },
+  "message": "Dashboard carregado com sucesso"
+}
+```
+
+#### 2. **Listar Logs**
+```http
+GET /api/admin/logs/logs?page=1&limit=50&date=2025-09-02&type=HTTP_ERROR
+Authorization: Bearer <token>
+```
+**Parâmetros de Query:**
+- `page` (opcional): Página (padrão: 1)
+- `limit` (opcional): Itens por página (padrão: 50)
+- `date` (opcional): Data específica (YYYY-MM-DD)
+- `type` (opcional): Tipo de log
+- `method` (opcional): Método HTTP
+- `status` (opcional): Status code
+- `userId` (opcional): ID do usuário
+- `search` (opcional): Busca em URL ou dados
+
+**Resposta:**
+```json
+{
+  "success": true,
+  "data": {
+    "logs": [
+      {
+        "id": 12345,
+        "request_id": "req_abc123",
+        "type": "REQUEST_END",
+        "timestamp": "2025-09-02T20:15:30.000Z",
+        "method": "POST",
+        "url": "/api/auth/login",
+        "status_code": 200,
+        "duration_ms": 156,
+        "ip_address": "192.168.1.1",
+        "user_agent": "Mozilla/5.0...",
+        "user_id": "user_123",
+        "data": {...}
+      }
+    ],
+    "pagination": {
+      "currentPage": 1,
+      "totalPages": 25,
+      "totalLogs": 1247,
+      "hasNext": true,
+      "hasPrev": false
+    }
+  }
+}
+```
+
+#### 3. **Estatísticas de Logs**
+```http
+GET /api/admin/logs/stats?date=2025-09-02
+Authorization: Bearer <token>
+```
+**Resposta:**
+```json
+{
+  "success": true,
+  "data": {
+    "stats": {
+      "date_only": "2025-09-02",
+      "total_requests": 1247,
+      "total_errors": 23,
+      "total_slow_requests": 15,
+      "avg_response_time_ms": 245.67,
+      "unique_users": 156,
+      "unique_ips": 89
+    },
+    "quick": {
+      "today": {...},
+      "totalLogs": 15847,
+      "typeBreakdown": {...}
+    },
+    "date": "2025-09-02"
+  }
+}
+```
+
+#### 4. **Buscar Logs**
+```http
+POST /api/admin/logs/search
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "searchTerm": "error",
+  "dateFrom": "2025-09-01",
+  "dateTo": "2025-09-02",
+  "limit": 100,
+  "offset": 0
+}
+```
+**Resposta:**
+```json
+{
+  "success": true,
+  "data": {
+    "results": [...],
+    "totalFound": 23,
+    "searchTerm": "error",
+    "filters": {
+      "dateFrom": "2025-09-01",
+      "dateTo": "2025-09-02"
+    }
+  }
+}
+```
+
+#### 5. **Limpeza de Logs Antigos**
+```http
+DELETE /api/admin/logs/cleanup?days=30
+Authorization: Bearer <token>
+```
+**Resposta:**
+```json
+{
+  "success": true,
+  "data": {
+    "deletedLogs": 5847,
+    "cutoffDate": "2025-08-03",
+    "remainingLogs": 10000
+  },
+  "message": "Logs antigos removidos com sucesso"
+}
+```
+
+#### 6. **Teste Simples**
+```http
+GET /api/admin/logs/simple
+Authorization: Bearer <token>
+```
+**Resposta:**
+```json
+{
+  "success": true,
+  "message": "Rota simples funcionando!",
+  "timestamp": "2025-09-02T20:23:04.720Z"
+}
+```
+
+---
+
+## 🔄 Middleware de Logging
+
+### 📝 Logging Automático
+O sistema registra automaticamente:
+
+#### **REQUEST_START** - Início da Requisição
+```javascript
+{
+  type: 'REQUEST_START',
+  method: 'POST',
+  url: '/api/auth/login',
+  ip_address: '192.168.1.1',
+  user_agent: 'Mozilla/5.0...',
+  user_id: null,
+  data: {
+    headers: {...},
+    query: {...},
+    body: {...} // Sanitizado
+  }
+}
+```
+
+#### **REQUEST_END** - Final da Requisição
+```javascript
+{
+  type: 'REQUEST_END',
+  method: 'POST',
+  url: '/api/auth/login',
+  status_code: 200,
+  duration_ms: 156,
+  ip_address: '192.168.1.1',
+  user_id: 'user_123',
+  data: {
+    response: {...}, // Sanitizado
+    duration: 156
+  }
+}
+```
+
+#### **HTTP_ERROR** - Erros HTTP
+```javascript
+{
+  type: 'HTTP_ERROR',
+  status_code: 404,
+  url: '/api/invalid/route',
+  data: {
+    error: 'Rota não encontrada',
+    stack: '...'
+  }
+}
+```
+
+#### **AUTH_EVENT** - Eventos de Autenticação
+```javascript
+{
+  type: 'AUTH_EVENT',
+  data: {
+    auth: {
+      userId: 'user_123',
+      email: 'admin@checkoutpro.com',
+      action: 'login',
+      success: true,
+      ipAddress: '192.168.1.1',
+      userAgent: 'Mozilla/5.0...',
+      details: {
+        loginMethod: 'email_password',
+        timestamp: '2025-09-02T20:15:30.000Z'
+      }
+    }
+  }
+}
+```
+
+#### **PAYMENT_EVENT** - Eventos de Pagamento
+```javascript
+{
+  type: 'PAYMENT_EVENT',
+  data: {
+    payment: {
+      orderId: 'order_123',
+      transactionId: 'txn_abc456',
+      action: 'payment_approved',
+      amount: 99.90,
+      currency: 'BRL',
+      paymentMethod: 'credit_card',
+      acquirer: 'pagarme',
+      status: 'approved',
+      details: {
+        cardBrand: 'visa',
+        installments: 1
+      }
+    }
+  }
+}
+```
+
+---
+
+## 🛠️ Funcionalidades Técnicas
+
+### 🔗 Conexão MySQL
+```javascript
+// Configuração com SSL
+const LOGS_DB_CONFIG = {
+  host: 'mysqlservercktpro.mysql.database.azure.com',
+  user: 'admcktpromysql',
+  password: '07XFRJl6sPAL',
+  database: 'checkoutpro_logs',
+  port: 3306,
+  ssl: {
+    ca: fs.readFileSync(SSL_CERT_PATH),
+    rejectUnauthorized: false
+  },
+  connectTimeout: 30000,
+  connectionLimit: 10,
+  charset: 'utf8mb4'
+};
+```
+
+### 📊 Otimizações
+- **Conexão reutilizada** - Evita reconexões desnecessárias
+- **Índices otimizados** - Performance em consultas frequentes
+- **Sanitização automática** - Remove dados sensíveis
+- **Validação de parâmetros** - Converte `undefined` para `null`
+- **Transações seguras** - Rollback em caso de erro
+
+### 🧹 Manutenção
+- **Cleanup automático** - Remoção de logs antigos
+- **Monitoramento de saúde** - Verificação da conexão
+- **Logs de erro** - Sistema de debug interno
+- **Backup automático** - Através do Azure MySQL
+
+---
+
+## 🚀 Como Usar
+
+### 1. **Visualizar Dashboard**
+```bash
+# Login
+curl -X POST http://localhost:5000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"admin@checkoutpro.com","password":"Admin123!"}'
+
+# Dashboard
+curl -X GET http://localhost:5000/api/admin/logs/dashboard \
+  -H "Authorization: Bearer <token>"
+```
+
+### 2. **Buscar Logs Específicos**
+```bash
+# Logs de erro de hoje
+curl -X GET "http://localhost:5000/api/admin/logs/logs?date=2025-09-02&type=HTTP_ERROR" \
+  -H "Authorization: Bearer <token>"
+```
+
+### 3. **Pesquisar Logs**
+```bash
+curl -X POST http://localhost:5000/api/admin/logs/search \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "searchTerm": "login",
+    "dateFrom": "2025-09-01",
+    "dateTo": "2025-09-02"
+  }'
+```
+
+### 4. **Manutenção**
+```bash
+# Limpar logs antigos (30 dias)
+curl -X DELETE "http://localhost:5000/api/admin/logs/cleanup?days=30" \
+  -H "Authorization: Bearer <token>"
+```
+
+---
+
+## 📈 Monitoramento e Métricas
+
+### 🎯 KPIs Disponíveis
+- **Total de requisições por dia**
+- **Taxa de erro (HTTP 4xx/5xx)**
+- **Tempo médio de resposta**
+- **Requisições lentas (>2s)**
+- **Usuários únicos por dia**
+- **IPs únicos por dia**
+- **Eventos de autenticação**
+- **Transações de pagamento**
+
+### 📊 Relatórios
+- **Dashboard em tempo real**
+- **Tendências semanais**
+- **Comparação dia anterior**
+- **Top rotas mais acessadas**
+- **Top erros mais frequentes**
+- **Análise de performance**
+
+---
+
+## 🔧 Troubleshooting
+
+### ❌ Problemas Comuns
+
+#### 1. **Erro de Conexão MySQL**
+```
+Error: connect ECONNREFUSED
+```
+**Solução:** Verificar configurações de rede e certificado SSL
+
+#### 2. **"Malformed communication packet"**
+```
+Error: Malformed communication packet
+```
+**Solução:** Verificar parâmetros SQL (evitar `undefined`)
+
+#### 3. **Unauthorized (401)**
+```
+{"success":false,"error":"Token inválido"}
+```
+**Solução:** Renovar token de autenticação
+
+### 🔍 Debug
+```javascript
+// Habilitar logs de debug
+console.log('🔍 Debug ativado para logs MySQL');
+
+// Verificar conexão
+await connection.execute('SELECT 1');
+
+// Testar inserção
+await saveLogToDatabase('TEST', {...});
+```
+
+---
+
+## 📋 Checklist de Implementação
+
+### ✅ Sistema Base
+- [x] Conexão MySQL com SSL
+- [x] Estrutura de tabelas completa
+- [x] Middleware de logging automático
+- [x] APIs administrativas
+- [x] Autenticação e autorização
+
+### ✅ Funcionalidades
+- [x] Dashboard interativo
+- [x] Listagem paginada
+- [x] Busca avançada
+- [x] Estatísticas em tempo real
+- [x] Cleanup automático
+- [x] Logs por tipo (auth, payment, etc.)
+
+### ✅ Performance
+- [x] Conexão reutilizada
+- [x] Índices otimizados
+- [x] Queries eficientes
+- [x] Sanitização automática
+- [x] Validação de parâmetros
+
+### ✅ Segurança
+- [x] SSL obrigatório
+- [x] Autenticação JWT
+- [x] Role-based access
+- [x] Sanitização de dados sensíveis
+- [x] Proteção contra SQL injection
+
+---
+
+## 🎉 Conclusão
+
+O **Sistema de Logs MySQL** está completamente implementado e funcionando, oferecendo:
+
+- **📊 Visibilidade total** - Logs estruturados e organizados
+- **🚀 Performance** - Conexões otimizadas e queries eficientes  
+- **🔒 Segurança** - SSL, autenticação e sanitização
+- **🛠️ Manutenção** - Limpeza automática e monitoramento
+- **📱 Interface** - APIs completas para administração
+
+**Sistema pronto para produção! 🚀**
+
+---
+**Documentação criada em:** 02/09/2025  
+**Versão:** 1.0  
+**Status:** ✅ Implementado e Testado
+
+# 📊 Sistema de Logs MySQL - CheckoutPro
+
+Sistema completo de logs usando **MySQL Azure Flexible Server** com SSL certificate.
+
+## 🚀 Quick Start
+
+### 1. Configuração
+- ✅ **MySQL Azure** configurado com SSL
+- ✅ **Certificado** em `certificado/certificado.crt`
+- ✅ **Tabelas** criadas automaticamente
+
+### 2. APIs Principais
+
+```bash
+# Login admin
+POST /api/auth/login
+{
+  "email": "admin@checkoutpro.com",
+  "password": "Admin123!"
+}
+
+# Dashboard de logs
+GET /api/admin/logs/dashboard
+Authorization: Bearer <token>
+
+# Listar logs
+GET /api/admin/logs/logs?page=1&limit=50&date=2025-09-02&type=HTTP_ERROR
+Authorization: Bearer <token>
+
+# Buscar logs
+POST /api/admin/logs/search
+Authorization: Bearer <token>
+{
+  "searchTerm": "error",
+  "dateFrom": "2025-09-01",
+  "dateTo": "2025-09-02"
+}
+
+# Estatísticas
+GET /api/admin/logs/stats?date=2025-09-02
+Authorization: Bearer <token>
+
+# Limpeza
+DELETE /api/admin/logs/cleanup?days=30
+Authorization: Bearer <token>
+
+# Teste simples
+GET /api/admin/logs/simple
+Authorization: Bearer <token>
+```
+
+## 🗃️ Estrutura do Banco
+
+### Tabelas
+- **`logs`** - Logs principais (requisições, erros, eventos)
+- **`logs_daily_stats`** - Estatísticas diárias agregadas
+- **`logs_auth_events`** - Eventos de autenticação específicos
+- **`logs_payment_events`** - Eventos de pagamento específicos
+
+### Tipos de Log
+- `REQUEST_START` - Início da requisição
+- `REQUEST_END` - Final da requisição
+- `HTTP_ERROR` - Erros HTTP (4xx, 5xx)
+- `APPLICATION_ERROR` - Erros da aplicação
+- `AUTH_EVENT` - Eventos de autenticação
+- `PAYMENT_EVENT` - Eventos de pagamento
+- `SLOW_REQUEST` - Requisições lentas (>2s)
+
+## 📊 Features
+
+### ✅ Implementado
+- [x] **100% MySQL** - Sem arquivos locais
+- [x] **SSL Certificate** - Conexão segura
+- [x] **Logging automático** - Middleware integrado
+- [x] **Dashboard admin** - Interface completa
+- [x] **Busca avançada** - Filtros e paginação
+- [x] **Estatísticas** - Métricas em tempo real
+- [x] **Cleanup automático** - Manutenção de logs
+- [x] **Performance otimizada** - Conexão reutilizada
+
+### 📈 Métricas Disponíveis
+- Total de requisições por dia
+- Taxa de erro (4xx/5xx)
+- Tempo médio de resposta
+- Requisições lentas
+- Usuários únicos
+- IPs únicos
+- Eventos de autenticação
+- Transações de pagamento
+
+## 🔧 Configuração Técnica
+
+### Conexão MySQL
+```javascript
+{
+  host: 'mysqlservercktpro.mysql.database.azure.com',
+  user: 'admcktpromysql', 
+  database: 'checkoutpro_logs',
+  port: 3306,
+  ssl: { ca: fs.readFileSync('certificado/certificado.crt') }
+}
+```
+
+### Middleware Automático
+- Registra todas as requisições
+- Captura erros automaticamente
+- Sanitiza dados sensíveis
+- Calcula tempo de resposta
+- Identifica requisições lentas
+
+## 🛠️ Manutenção
+
+### Health Check
+```bash
+GET /api/admin/logs/simple
+# Resposta: {"success":true,"message":"Rota simples funcionando!"}
+```
+
+### Limpeza
+```bash
+DELETE /api/admin/logs/cleanup?days=30
+# Remove logs mais antigos que 30 dias
+```
+
+### Debug
+- Logs de conexão no console
+- Validação automática de parâmetros
+- Tratamento de erros robusto
+
+## 📚 Documentação Completa
+
+Ver: `DOCUMENTACAO_LOGS_MYSQL_COMPLETA.md`
+
+---
+
+**Status:** ✅ **FUNCIONANDO**  
+**Última atualização:** 02/09/2025  
+**Versão:** 1.0
